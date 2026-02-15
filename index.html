@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Starter2d</title>
+  <style>
+    html,body,canvas{
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
+      box-sizing: border-box;
+      display: block;
+    }
+
+    /* Dropdown Button */
+    /* Dropdown Button */
+    .dropbtn {
+      background-color: #04AA6D;
+      color: white;
+      padding: 16px;
+      font-size: 16px;
+      border: none;
+    }
+
+    /* The container <div> - needed to position the dropdown content */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* Dropdown Content (Hidden by Default) */
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f1f1f1;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    /* Links inside the dropdown */
+    .dropdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    /* Change color of dropdown links on hover */
+    .dropdown-content a:hover {background-color: #ddd;}
+
+    /* Show the dropdown menu on hover */
+    .dropdown:hover .dropdown-content {display: block;}
+
+    /* Change the background color of the dropdown button when the dropdown content is shown */
+    .dropdown:hover .dropbtn {background-color: #3e8e41;}
+
+  </style>
+</head>
+<body>
+<div class="dropdown">
+  <button class="dropbtn">Dropdown</button>
+  <div class="dropdown-content">
+    <a onclick="myFunction('point')">Add Point</a>
+    <a onclick="myFunction('bezier')">Add Bezier</a>
+    <a onclick="myFunction('move')">Move</a>
+  </div>
+</div>
+
+
+<script type="module">
+  import {changeDropdown} from "./main.js";
+  window.myFunction = function(set_mode) {
+    changeDropdown(set_mode);
+  }
+</script>
+
+
+
+
+<canvas id="glcanvas" width="800" height="600">
+  Your browser does not support HTML5
+</canvas>
+
+
+
+<script
+        src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
+        integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
+        crossorigin="anonymous"
+        defer></script>
+<script src="main.js" type="module"></script>
+</body>
+</html>
