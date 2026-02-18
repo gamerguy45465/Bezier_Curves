@@ -59,4 +59,4 @@ function drawVertices(gl, shaderProgram, vertices, color, style) {
 }
 
 
-export {drawCircle, drawRectangle, drawTriangle, drawLineStrip};
+export {drawCircle, CreateCircleVertices, drawRectangle, drawTriangle, drawLineStrip};

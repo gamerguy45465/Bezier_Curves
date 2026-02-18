@@ -62,9 +62,7 @@
 <div class="dropdown">
   <button class="dropbtn">Dropdown</button>
   <div class="dropdown-content">
-    <a onclick="myFunction('point')">Add Point</a>
-    <a onclick="myFunction('bezier')">Add Bezier</a>
-    <a onclick="myFunction('move')">Move</a>
+    <a onclick="myFunction('bezier')">Add Bezier Curve</a>
   </div>
 </div>
 
@@ -73,6 +71,7 @@
   import {changeDropdown} from "./main.js";
   window.myFunction = function(set_mode) {
     changeDropdown(set_mode);
+
   }
 </script>
 

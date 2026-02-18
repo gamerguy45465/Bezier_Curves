@@ -1,9 +1,48 @@
 import {initShaderProgram} from "./shader.js";
-import {drawCircle, drawRectangle, drawTriangle, drawLineStrip} from "./shapes2d.js";
+import {drawCircle, CreateCircleVertices, drawRectangle, drawTriangle, drawLineStrip} from "./shapes2d.js";
 import { randomDouble } from "./random.js";
 
 
 let mode = "point";
+
+
+let clicked = false;
+
+
+function withinPoint(x, y, cx, cy, radius)
+{
+    const dx = x - cx;
+    const dy = y - cy;
+    return dx*dx + dy*dy <= radius*radius;
+}
+
+
+function cubicBezier(p0, p1, p2, p3, t) {
+    const u = 1 - t;
+
+    const x = u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0];
+
+
+    const y = u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1];
+
+
+    return [x, y];
+}
+
+
+function buildBezierCurve(points, samples = 100) {
+    if (points.length < 4) return [];
+
+    const curve = [];
+
+    for(let i = 0; i <= samples; i++) {
+        const t = i / samples;
+        const p = cubicBezier(points[0], points[1], points[2], points[3], t);
+        curve.push(p);
+    }
+
+    return curve;
+}
 
 
 function changeDropdown(set_mode) {
@@ -78,34 +117,66 @@ async function main() {
 
     const radius = 0.1;
     const color = [0,0,0,1];
-    const coords = [];
-    const tris = [];
+    const coords = [[-3.017656500802568, -3.48692403486924], [4.641350210970465, 4.177215189873419]];
+    const tris = [[coords[0], [-0.04219409282700326, 4.746835443037975], [0.3797468354430382, -3.5021097046413505], coords[1]]];
 
-    addEventListener("click", click);
+    const ps = [[false, false, false, false]];
+
+    let the_inc = 0;
+    function add_bezier() {
+
+        coords.push([coords[the_inc][0] + 3, coords[the_inc][1] + 3]);
+        coords.push([coords[the_inc + 1][0] + 3, coords[the_inc + 1][1] + 3]);
+        tris.push(
+            [[tris[the_inc][0][0] + 3, tris[the_inc][0][1] + 3],
+            [tris[the_inc][1][0] + 3, tris[the_inc][1][1] + 3],
+            [tris[the_inc][2][0] + 3,tris[the_inc][2][1] + 3],
+            [tris[the_inc][3][0] + 3,tris[the_inc][3][1] + 3]]
+        );
+
+        ps.push([false, false, false, false]);
+        mode = "point";
+        the_inc += 1;
+
+    }
+
+
+    let xWorld = 0;
+    let yWorld = 0;
+
+
+    addEventListener("mousedown", click);
     function click(event) {
-        console.log("click");
-        const xWorld = xlow + event.offsetX / gl.canvas.clientWidth * (xhigh - xlow);
-        const yWorld = ylow + (gl.canvas.clientHeight - event.offsetY) / gl.canvas.clientHeight * (yhigh - ylow);
+        clicked = true;
 
-        console.log(xWorld, yWorld);
-        console.log("client_width: ", gl.canvas.clientWidth);
 
-        if(mode === "point")
-        {
-            if(yWorld <= gl.canvas.clientHeight)
-            {
-                drawCircle(gl, shaderProgram, xWorld, yWorld, radius, color);
-                coords.push([xWorld, yWorld]);
+        xWorld = xlow + event.offsetX / gl.canvas.clientWidth * (xhigh - xlow);
+        yWorld = ylow + (gl.canvas.clientHeight - event.offsetY) / gl.canvas.clientHeight * (yhigh - ylow);
 
+        for(let i = 0; i < tris.length; i++) {
+            for(let j = 0; j < tris[i].length; j++) {
+                if(withinPoint(xWorld, yWorld, tris[i][j][0], tris[i][j][1], radius)) {
+                    ps[i][j] = true;
+                }
+            }
+        }
+
+
+
+    }
+
+
+    addEventListener("mouseup", stop);
+    function stop(event) {
+        clicked = false;
+        for(let i = 0; i < tris.length; i++) {
+            for(let j = 0; j < tris[i].length; j++) {
+                ps[i][j] = false;
             }
 
         }
-        if(mode === "bezier")
-        {
-            drawTriangle(gl, shaderProgram, xWorld, yWorld, xWorld+radius, yWorld, xWorld, yWorld+radius, color);
-            tris.push([xWorld, yWorld, xWorld+radius, yWorld, xWorld, yWorld+radius]);
-        }
     }
+
 
 
     let previousTime = 0;
@@ -120,24 +191,77 @@ async function main() {
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        const line = [];
 
-        for(let i = 0; i < coords.length; i++)
-        {
-            drawCircle(gl, shaderProgram, coords[i][0], coords[i][1], radius, color);
-            coords.forEach(coord => {
-                line.push(coord[0]);
-                line.push(coord[1]);
+        if(mode == "bezier") {
+            add_bezier();
+        }
 
-            });
-            drawLineStrip(gl, shaderProgram, line, color);
+        if(clicked) {
+            addEventListener("mousemove", move);
+            function move(event) {
+
+                if(clicked) {
+                    xWorld = xlow + event.offsetX / gl.canvas.clientWidth * (xhigh - xlow);
+                    yWorld = ylow + (gl.canvas.clientHeight - event.offsetY) / gl.canvas.clientHeight * (yhigh - ylow);
+
+                }
+
+
+
+            }
+
+
 
         }
+
+        const line = [];
+
+        /*for(let i = 0; i < coords.length; i++)
+        {
+            drawCircle(gl, shaderProgram, coords[i][0], coords[i][1], radius, color);
+
+
+        } */
 
         for(let i = 0; i < tris.length; i++)
         {
-            drawTriangle(gl, shaderProgram, tris[i][0], tris[i][1], tris[i][2], tris[i][3], tris[i][4], tris[i][5], color);
+            for(let j = 0; j < tris[i].length; j++) {
+                if(ps[i][j])
+                {
+                    tris[i][j][0] = xWorld;
+                    tris[i][j][1] = yWorld;
+                }
+                drawCircle(gl, shaderProgram, tris[i][j][0], tris[i][j][1], radius, color);
+
+            }
+
         }
+
+
+        for(let i = 0; i < tris.length; i++) {
+            const curve = buildBezierCurve(tris[i]);
+
+            const new_line = [];
+
+            for(let j = 0; j < curve.length; j += 2) {
+                //line.push(curve[j][0], curve[j][1]);
+                new_line.push(curve[j][0], curve[j][1]);
+
+                //drawLineStrip(gl, shaderProgram, line, color);
+
+
+            }
+
+            line.push(new_line);
+
+            for(let j = 0; j < line.length; j += 1) {
+                drawLineStrip(gl, shaderProgram, line[j], color);
+            }
+
+        }
+
+
+
 
         requestAnimationFrame(redraw);
 
